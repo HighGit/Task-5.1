@@ -1,5 +1,8 @@
 package com.example.myapplication;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebView;
 
@@ -10,29 +13,28 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public class PlayerActivity extends AppCompatActivity {
-    WebView webView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_player);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        webView = findViewById(R.id.webView);
-        webView.getSettings().setJavaScriptEnabled(true);
 
         String link = getIntent().getStringExtra("link");
-        if (link.contains("watch?v=")) {
-            String videoId = link.substring(link.indexOf("v=") + 2);
-            link = "https://www.youtube.com/embed/" + videoId;
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
+        // Optional: Try to open directly in YouTube app
+        intent.setPackage("com.google.android.youtube");
+
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            // Fallback to browser if YouTube app is not installed
+            intent.setPackage(null);
+            startActivity(intent);
         }
 
-        String html = "<iframe width=\"100%\" height=\"100%\" src=\"" + link + "\" frameborder=\"0\" allowfullscreen></iframe>";
-        webView.loadData(html, "text/html", "utf-8");
+        // Optional: Close the activity so the user returns to the previous screen after watching
+        finish();
     }
 }
+
+
+
